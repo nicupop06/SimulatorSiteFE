@@ -71,7 +71,9 @@
     #inputFields,
     #dosar-table,
     #agreementCheckbox,
-    #fileInputs {
+    #fileInputs,
+    #customCaptcha,
+    #submitSection {
       display: none;
     }
 
@@ -99,20 +101,8 @@
     <input type="text" placeholder="Nume solicitant">
     <input type="text" placeholder="CNP / CIF">
     <input type="text" placeholder="Adresă email">
-
     <a href="Cerere.pdf" download="Cerere.pdf" class="download-btn">Descarcă cerere</a>
   </div>
-
-  <div id="customCaptcha" style="margin: 20px 0; display: none;">
-    <label for="captchaInput">Introdu codul de mai jos:</label>
-    <div id="captchaCanvas"
-      style="font-weight: bold; font-size: 22px; background: #ddd; padding: 10px; width: fit-content; letter-spacing: 4px; user-select: none;">
-    </div>
-    <input type="text" id="captchaInput" placeholder="Introdu codul captcha" style="margin-top: 10px; width: 200px;">
-    <button type="button" onclick="validateCaptcha()">Verifică</button>
-    <p id="captchaError" style="color: red; display: none;">Codul este incorect. Încearcă din nou.</p>
-  </div>
-
 
   <div id="dosar-table">
     <h3>CONȚINUTUL DOSARULUI DE FINANȚARE</h3>
@@ -156,26 +146,49 @@
         electronic.</strong>
     </p>
 
-    <!-- New Checkbox for agreement -->
     <div id="agreementCheckbox">
       <input type="checkbox" id="agreement" /> Sunt de acord cu termenii și condițiile.
     </div>
 
-    <!-- File upload section (hidden initially) -->
     <div id="fileInputs">
       <h3>Încărcați documentele necesare:</h3>
-      <label class="file-upload-label" for="file1">1. Cerere de finanțare:</label>
+      <label class="file-upload-label" for="file1">1. Act de indentitate:</label>
       <input type="file" id="file1" />
 
-      <label class="file-upload-label" for="file2">2. Actul de identitate:</label>
+      <label class="file-upload-label" for="file2">2. Certificat de atestare fiscala privind obligatiile de
+        piata:</label>
       <input type="file" id="file2" />
 
-      <label class="file-upload-label" for="file3">3. Certificat de atestare fiscală:</label>
+      <label class="file-upload-label" for="file3">3. Certificat de atestare fiscală privind impozitele si
+        taxele:</label>
       <input type="file" id="file3" />
 
       <label class="file-upload-label" for="file4">4. Atestat de producător:</label>
       <input type="file" id="file4" />
+
+      <label class="file-upload-label" for="file5">5. Cererea de finantare:</label>
+      <input type="file" id="file5" />
     </div>
+
+    <div id="customCaptcha" style="margin: 20px 0;">
+      <label for="captchaInput">Introdu codul de mai jos:</label>
+      <div id="captchaCanvas"
+        style="font-weight: bold; font-size: 22px; background: #ddd; padding: 10px; width: fit-content; letter-spacing: 4px; user-select: none;">
+      </div>
+      <input type="text" id="captchaInput" placeholder="Introdu codul captcha" style="margin-top: 10px; width: 200px;">
+      <button type="button" onclick="validateCaptcha()">Verifică</button>
+      <p id="captchaError" style="color: red; display: none;">Codul este incorect. Încearcă din nou.</p>
+    </div>
+
+    <div id="submitSection" style="margin-top: 20px;">
+      <button type="button" onclick="handleSubmit()"
+        style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">
+        Trimite Dosarul
+      </button>
+      <p id="submitMessage" style="color: green; display: none; margin-top: 10px;">Dosarul a fost trimis cu succes!</p>
+    </div>
+
+
   </div>
 
   <script>
@@ -194,19 +207,13 @@
       const selection = document.getElementById("programSelect").value;
       const fieldsDiv = document.getElementById("inputFields");
       const tableDiv = document.getElementById("dosar-table");
-      const recaptchaDiv = document.getElementById("recaptcha");
-      const captchaDiv = document.getElementById("customCaptcha");
 
       if (selection === "tractoare") {
         fieldsDiv.style.display = "block";
-        captchaDiv.style.display = "block";
-        generateCaptcha();
-        tableDiv.style.display = "none"; // Hide table until CAPTCHA is validated
-        recaptchaDiv.style.display = "none"; // Hide Google reCAPTCHA if used
+        tableDiv.style.display = "block";
       } else {
         fieldsDiv.style.display = "none";
         tableDiv.style.display = "none";
-        captchaDiv.style.display = "none";
       }
     }
 
@@ -214,44 +221,68 @@
       const input = document.getElementById("captchaInput").value.trim().toUpperCase();
       const errorMsg = document.getElementById("captchaError");
       if (input === generatedCaptcha) {
-        document.getElementById("dosar-table").style.display = "block";
+        document.getElementById("submitSection").style.display = "block";
         errorMsg.style.display = "none";
       } else {
         errorMsg.style.display = "block";
-        generateCaptcha(); // Regenerate on fail
+        generateCaptcha();
       }
     }
 
-    // Function to check if all checkboxes are selected
     const checkboxes = document.querySelectorAll('.docCheckbox');
     const agreementCheckboxDiv = document.getElementById('agreementCheckbox');
     const fileInputsDiv = document.getElementById('fileInputs');
+    const fileInputs = document.querySelectorAll('#fileInputs input[type="file"]');
+    const captchaDiv = document.getElementById('customCaptcha');
+    const submitSection = document.getElementById('submitSection');
 
     const allSelected = () => {
-      // Check if all checkboxes are selected
       return Array.from(checkboxes).every(checkbox => checkbox.checked);
+    };
+
+    const allFilesUploaded = () => {
+      return Array.from(fileInputs).every(file => file.files.length > 0);
     };
 
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', () => {
-        // Show the "Sunt de acord cu ..." checkbox only when all checkboxes are selected
         if (allSelected()) {
           agreementCheckboxDiv.style.display = 'block';
         } else {
           agreementCheckboxDiv.style.display = 'none';
+          fileInputsDiv.style.display = 'none';
+          captchaDiv.style.display = 'none';
+          submitSection.style.display = 'none';
         }
       });
     });
 
-    // Show file input fields after agreement checkbox is checked
-    const agreementCheckbox = document.getElementById('agreement');
-    agreementCheckbox.addEventListener('change', () => {
-      if (agreementCheckbox.checked) {
+    document.getElementById('agreement').addEventListener('change', () => {
+      if (document.getElementById('agreement').checked) {
         fileInputsDiv.style.display = 'block';
       } else {
         fileInputsDiv.style.display = 'none';
+        captchaDiv.style.display = 'none';
+        submitSection.style.display = 'none';
       }
     });
+
+    fileInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        if (allFilesUploaded()) {
+          generateCaptcha();
+          captchaDiv.style.display = 'block';
+        } else {
+          captchaDiv.style.display = 'none';
+          submitSection.style.display = 'none';
+        }
+      });
+    });
+
+    function handleSubmit() {
+      document.getElementById("submitMessage").style.display = "block";
+    }
+
   </script>
 
 </body>
