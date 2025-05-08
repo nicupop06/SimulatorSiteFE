@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>Depunere Dosar Finanțare</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background-color: #f5f5f5;
+    }
+
+    select, input[type="text"], input[type="file"] {
+      padding: 8px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .download-btn {
+      display: inline-block;
+      background-color: #008080;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-top: 15px;
+    }
+
+    .download-btn:hover {
+      background-color: #006666;
+    }
+
+    .dosar-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: white;
+      border: 1px solid #ccc;
+    }
+
+    .dosar-table th, .dosar-table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      vertical-align: top;
+    }
+
+    .dosar-table th {
+      background-color: #008080;
+      color: white;
+      text-align: left;
+    }
+
+    .note {
+      margin-top: 15px;
+      font-size: 14px;
+      background: #e0f7fa;
+      padding: 10px;
+      border-left: 4px solid #00796b;
+    }
+
+    #inputFields, #dosar-table, #agreementCheckbox, #fileInputs {
+      display: none;
+    }
+    
+    .file-upload-label {
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Depunere Dosar de Finanțare</h2>
+
+  <div class="section">
+    <label for="programSelect">Selectează programul:</label>
+    <select id="programSelect" onchange="handleSelectionChange()">
+      <option value="">-- Selectează --</option>
+      <option value="tractoare">Sesiune depunere dosare de cerere de finanțarea tractoare și mașini agricole autopropulsate</option>
+    </select>
+  </div>
+
+  <div id="inputFields">
+    <input type="text" placeholder="Nume solicitant">
+    <input type="text" placeholder="CNP / CIF">
+    <input type="text" placeholder="Adresă email">
+    
+    <a href="cerere.pdf" download="cerere.pdf" class="download-btn">Descarcă cerere</a>
+  </div>
+
+  <div id="dosar-table">
+    <h3>CONȚINUTUL DOSARULUI DE FINANȚARE</h3>
+    <p>Dosarul de finanțare trebuie să cuprindă următoarele documente:</p>
+
+    <table class="dosar-table">
+      <thead>
+        <tr>
+          <th>Lista documentelor</th>
+          <th>Documente</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>a) cererea de finanțare;</td>
+          <td><input type="checkbox" class="docCheckbox"></td>
+        </tr>
+        <tr>
+          <td>b) actul de identitate al solicitantului, valabil la momentul înscrierii în aplicație;</td>
+          <td><input type="checkbox" class="docCheckbox"></td>
+        </tr>
+        <tr>
+          <td>c) certificatul de atestare fiscală privind obligațiile de plată către bugetul de stat...</td>
+          <td><input type="checkbox" class="docCheckbox"></td>
+        </tr>
+        <tr>
+          <td>d) certificatul de atestare fiscală privind impozitele și taxele locale...</td>
+          <td><input type="checkbox" class="docCheckbox"></td>
+        </tr>
+        <tr>
+          <td>e) atestatul de producător, emis pe numele solicitantului...</td>
+          <td><input type="checkbox" class="docCheckbox"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="note">
+      Certificatele emise în format electronic vor fi încărcate în aplicație în același format în care au fost eliberate de autoritățile/instituțiile emitente.<br>
+      <strong>Nu se vor admite documentele reprezentând scanare/imagine după documentul emis în format electronic.</strong>
+    </p>
+
+    <!-- New Checkbox for agreement -->
+    <div id="agreementCheckbox">
+      <input type="checkbox" id="agreement" /> Sunt de acord cu termenii și condițiile.
+    </div>
+
+    <!-- File upload section (hidden initially) -->
+    <div id="fileInputs">
+      <h3>Încărcați documentele necesare:</h3>
+      <label class="file-upload-label" for="file1">1. Cerere de finanțare:</label>
+      <input type="file" id="file1" />
+
+      <label class="file-upload-label" for="file2">2. Actul de identitate:</label>
+      <input type="file" id="file2" />
+
+      <label class="file-upload-label" for="file3">3. Certificat de atestare fiscală:</label>
+      <input type="file" id="file3" />
+
+      <label class="file-upload-label" for="file4">4. Atestat de producător:</label>
+      <input type="file" id="file4" />
+    </div>
+  </div>
+
+  <script>
+    function handleSelectionChange() {
+      const selection = document.getElementById("programSelect").value;
+      const fieldsDiv = document.getElementById("inputFields");
+      const tableDiv = document.getElementById("dosar-table");
+
+      if (selection === "tractoare") {
+        fieldsDiv.style.display = "block";
+        tableDiv.style.display = "block";
+      } else {
+        fieldsDiv.style.display = "none";
+        tableDiv.style.display = "none";
+      }
+    }
+
+    // Function to check if all checkboxes are selected
+    const checkboxes = document.querySelectorAll('.docCheckbox');
+    const agreementCheckboxDiv = document.getElementById('agreementCheckbox');
+    const fileInputsDiv = document.getElementById('fileInputs');
+
+    const allSelected = () => {
+      // Check if all checkboxes are selected
+      return Array.from(checkboxes).every(checkbox => checkbox.checked);
+    };
+
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        // Show the "Sunt de acord cu ..." checkbox only when all checkboxes are selected
+        if (allSelected()) {
+          agreementCheckboxDiv.style.display = 'block';
+        } else {
+          agreementCheckboxDiv.style.display = 'none';
+        }
+      });
+    });
+
+    // Show file input fields after agreement checkbox is checked
+    const agreementCheckbox = document.getElementById('agreement');
+    agreementCheckbox.addEventListener('change', () => {
+      if (agreementCheckbox.checked) {
+        fileInputsDiv.style.display = 'block';
+      } else {
+        fileInputsDiv.style.display = 'none';
+      }
+    });
+  </script>
+
+</body>
+</html>
